@@ -10,36 +10,36 @@ class MoveService:
         game = GameModel(**request.json)
         bestVal = -1000
         bestMove = -1
-        
-        for i in range(0,8) :
+        moves =  []
+        #print(game.board)
+        for i in range(0,9) :
+            #print("%d == %d - %r" % (game.board[i], game.values[0], game.board[i] == game.values[0]))
             if game.board[i] == game.values[0]:
                 print(game.board[i])
                 game.board[i] = game.values[1]
                 
                 moveVal = cls.minimax(game.board, 0, False, game.values)
-                
+                moves.append((i, moveVal))
                 game.board[i] = game.values[0]
                 if moveVal > bestVal:
                     bestMove = i
                     bestVal = moveVal
-                    print(bestVal)
-        
+                    
+        print(moves)
         return bestMove
 
     @classmethod
-    def is_terminal_state(cls, board: List[int]):
-
-        if cls.is_board_complete(board):
-            return True 
+    def was_won(cls, board: List[int], values):
     
         for scenario in cls.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
-                return True
+                if board[scenario[0]] != values[0]:
+                    return True
         
         return False
 
     @classmethod
-    def is_board_complete(cls, board: List[int], values: List[int]):
+    def is_board_complete(cls, board: List[int], values: List[int]) -> bool:
         for position in board:
             if position == values[0]:
                 return False
@@ -58,29 +58,32 @@ class MoveService:
     @classmethod
     def minimax(cls, board: List[int], depth: int, isMaximizingPlayer: bool, values: List[int]):
         score = cls.evaluate(board, values)
-        
-        if score == 10 or score == -10:
+       
+        #print(board, cls.was_won(board, values), score)
+        if(cls.was_won(board, values)):
             return score
     
-        if cls.is_board_complete(board, values):
+        elif cls.is_board_complete(board, values):
             return 0
-        
-        if isMaximizingPlayer:
-            best = -1000 
-            for i in range(0,8) :
+        elif isMaximizingPlayer:
+            best = -10000          
+            for i in range(0,9) :
                 if board[i] == values[0]:
                     board[i] = values[1]
-                    best = max(best, cls.minimax(board, depth + 1, not isMaximizingPlayer, values))
+                    best = max(best, score + cls.minimax(board, depth + 1, not isMaximizingPlayer, values))
                     board[i] = values[0]
-               
+                   
+            print(best, depth)
             return best
 
+
         else :
-            best = 1000 
-            for i in range(0,8) :
+            best = 10000        
+            for i in range(0,9) :
                 if board[i] == values[0]:
                     board[i] = values[2]
-                    best = min(best, cls.minimax(board, depth + 1, not isMaximizingPlayer, values))
-                    board[i] = values[0]
-               
+                    best = min(best, score + cls.minimax(board, depth + 1, not isMaximizingPlayer, values))
+                    board[i] = values[0]            
+                     
+            print(best, depth)
             return best
