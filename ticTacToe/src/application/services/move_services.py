@@ -1,4 +1,5 @@
 from typing import List
+from random import randint
 from src.application.domain.models import GameModel
 
 class MoveService:
@@ -11,7 +12,17 @@ class MoveService:
         bestVal = -1000
         bestMove = -1
         moves =  []
-        #print(game.board)
+        #base case
+        if cls.is_board_empty(game.board, game.values):
+            dict = {
+                0: 0,
+                1: 2,
+                2: 4,
+                3: 6,
+                4: 8
+
+            }
+            return dict[randint(0, 4)]
         for i in range(0,9) :
             #print("%d == %d - %r" % (game.board[i], game.values[0], game.board[i] == game.values[0]))
             if game.board[i] == game.values[0]:
@@ -27,6 +38,13 @@ class MoveService:
                     
         print(moves)
         return bestMove
+
+    @classmethod
+    def is_board_empty(cls, board: List[int], values):
+        for position in board:
+            if position != values[0]:
+                return False
+        return True
 
     @classmethod
     def was_won(cls, board: List[int], values):
