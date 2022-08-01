@@ -6,7 +6,7 @@ class MoveService:
     # win scenarios
     scenarios = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
     values = []
-    currentPlayer = -1
+    current_player = -1
 
 
     @classmethod
@@ -27,21 +27,17 @@ class MoveService:
 
             }[randint(0, 4)]
 
-        self.currentPlayer = {
-                -1: -1,
-                1: self.values[1],
-                2: self.values[2]
+        self.current_player = self.whoseTurn(game.board)
 
-            }[self.whoseTurn(game.board)]
+        if self.current_player == -1:
+            return -1   
 
-        if self.currentPlayer == -1:
-            return -1          
-            
+        print(game.board, self.values[self.current_player])
 
         for i in range(0,9) :
             #print("%d == %d - %r" % (game.board[i], game.values[0], game.board[i] == game.values[0]))
             if game.board[i] == self.values[0]:
-                game.board[i] = self.currentPlayer
+                game.board[i] = self.values[self.current_player]
                 
                 moveVal = self.minimax(game.board, 0, False)
                 moves.append((i, moveVal))
@@ -96,7 +92,7 @@ class MoveService:
     def evaluate(self, board: List[int]):
         for scenario in self.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
-                if board[scenario[0]] == self.currentPlayer:
+                if board[scenario[0]] == self.values[self.current_player]:
                     return 10
                 else: 
                     return -10
@@ -106,9 +102,9 @@ class MoveService:
     def minimax(self, board: List[int], depth: int, isMaximizingPlayer: bool):
         score = self.evaluate(board)
        
-        #print(board, self.was_won(board, self.values), score)
+        print(board, self.was_won(board), score, self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2])
         if(self.was_won(board)):
-            print(board)
+            #print(board)
             return score
     
         elif self.is_board_complete(board):
@@ -117,11 +113,11 @@ class MoveService:
             best = -10000          
             for i in range(0,9) :
                 if board[i] == self.values[0]:
-                    board[i] = self.values[1] if isMaximizingPlayer else self.values[2]
+                    board[i] = self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2]
                     best = max(best, score + self.minimax(board, depth + 1, not isMaximizingPlayer))
                     board[i] = self.values[0]
                    
-            print(best, depth)
+            #print(best, depth)
             return best
 
 
@@ -129,9 +125,9 @@ class MoveService:
             best = 10000        
             for i in range(0,9) :
                 if board[i] == self.values[0]:
-                    board[i] = self.values[2]
+                    board[i] = self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2]
                     best = min(best, score + self.minimax(board, depth + 1, not isMaximizingPlayer))
                     board[i] = self.values[0]            
                      
-            print(best, depth)
+            #print(best, depth)
             return best
