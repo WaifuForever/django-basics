@@ -12,7 +12,7 @@ class MoveService:
     @classmethod
     async def best_move(self, request):
         game = GameModel(**request.json)
-        bestVal = -1000
+        bestVal = -1000000
         bestMove = -1
         self.values = game.values
         moves =  []
@@ -32,26 +32,28 @@ class MoveService:
         if self.current_player == -1:
             return -1   
 
-        print(game.board, self.values[self.current_player])
+        #print(game.board, self.values[self.current_player])
 
         for i in range(0,9) :
             #print("%d == %d - %r" % (game.board[i], game.values[0], game.board[i] == game.values[0]))
             if game.board[i] == self.values[0]:
                 game.board[i] = self.values[self.current_player]
-                
+                #print()
+                #print(game.board, "[%d]" % (i))
                 moveVal = self.minimax(game.board, 0, False)
-                moves.append((i, moveVal))
+                
+                moves.append((i, int(moveVal)))
                 game.board[i] = self.values[0]
                 if moveVal > bestVal:
                     bestMove = i
                     bestVal = moveVal
                     
-        print(moves)
+        print(moves, self.current_player)
         return bestMove
 
     @classmethod
     def whoseTurn(self, board: List[int]):
-        if len(board) != 9:
+        if len(board) != 9 or self.was_won(board):
             return -1
       
         n1 = board.count(self.values[1])
@@ -89,45 +91,45 @@ class MoveService:
         return True
 
     @classmethod
-    def evaluate(self, board: List[int]):
+    def evaluate(self, board: List[int], depth):
         for scenario in self.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
                 if board[scenario[0]] == self.values[self.current_player]:
-                    return 10
+                    return pow(2, 9 - depth) / (1 if depth == 0 else depth + 1)
                 else: 
-                    return -10
+                    return -pow(2, 9 - depth) / (1 if depth == 0 else depth + 1)
         return 0
     
     @classmethod
     def minimax(self, board: List[int], depth: int, isMaximizingPlayer: bool):
-        score = self.evaluate(board)
-       
-        print(board, self.was_won(board), score, self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2])
+        score = self.evaluate(board, depth)
+        # 2 0 1
+        # 2 1 2
+        # 2 1 2
+        
         if(self.was_won(board)):
-            #print(board)
+            #print(board, self.was_won(board), int(score), depth)
             return score
     
         elif self.is_board_complete(board):
+            #print(board, self.was_won(board), 0, depth)
             return 0
-        elif isMaximizingPlayer:
-            best = -10000          
+        elif isMaximizingPlayer: 
+            bestVal = -100000    
             for i in range(0,9) :
                 if board[i] == self.values[0]:
                     board[i] = self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2]
-                    best = max(best, score + self.minimax(board, depth + 1, not isMaximizingPlayer))
+                    bestVal = max(bestVal, self.minimax(board, depth + 1, not isMaximizingPlayer))
                     board[i] = self.values[0]
                    
-            #print(best, depth)
-            return best
 
 
-        else :
-            best = 10000        
+        else :    
+            bestVal = 100000  
             for i in range(0,9) :
                 if board[i] == self.values[0]:
                     board[i] = self.values[self.current_player] if isMaximizingPlayer else self.values[1 if self.current_player == 2 else 2]
-                    best = min(best, score + self.minimax(board, depth + 1, not isMaximizingPlayer))
+                    bestVal = min(bestVal, self.minimax(board, depth + 1, not isMaximizingPlayer))
                     board[i] = self.values[0]            
                      
-            #print(best, depth)
-            return best
+        return bestVal
