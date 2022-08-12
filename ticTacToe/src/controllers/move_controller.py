@@ -13,5 +13,23 @@ class MoveController:
         self, request=None
     ) -> Tuple[Optional[dict], HTTPStatus]:
         result = await self.service.best_move(request)
+        return response.json(
+            body={
+                "code": HTTPStatus.OK,
+                "data": result
+            },
+            status=HTTPStatus.OK
+        )
 
-        return response.json(body=result, status=HTTPStatus.OK)
+    async def is_terminal_state(
+        self, request=None
+    ) -> Tuple[Optional[dict], HTTPStatus]:
+        result = await self.service.is_terminal_state(request)
+        print(result)
+        return response.json(
+            body={
+                "code": HTTPStatus.OK,
+                "data": result
+            },
+            status=HTTPStatus.OK
+        )

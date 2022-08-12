@@ -8,6 +8,32 @@ class MoveService:
     values = []
     current_player = -1
 
+    @classmethod
+    async def is_terminal_state(self, request) -> int:
+        game = GameModel(**request.json)
+        
+        if len(game.board) != 9:
+            return -1
+      
+        n1 = game.board.count(game.values[1])
+        n2 = game.board.count(game.values[2])
+
+        if not (n1 == n2 or n1 + 1 == n2 or n2 + 1 == n1):
+            return -1
+        
+        for scenario in self.scenarios:
+            if game.board[scenario[0]] == game.board[scenario[1]] and game.board[scenario[1]] == game.board[scenario[2]]:
+                if game.board[scenario[0]] != game.values[0]:
+                    if game.board[scenario[0]] == game.values[1]:
+                        return 1
+                    else:
+                        return 2
+        
+        if self.is_board_complete(game.board, game.values):
+            return 0
+        else: 
+            return -1
+
 
     @classmethod
     async def best_move(self, request):
@@ -27,13 +53,13 @@ class MoveService:
 
             }[randint(0, 4)]
 
-        self.current_player = self.whoseTurn(game.board)
+        self.current_player = self.whose_turn(game.board, game.values)
 
         if self.current_player == -1:
             return -1   
 
         #print(game.board, self.values[self.current_player])
-
+        
         for i in range(0,9) :
             #print("%d == %d - %r" % (game.board[i], game.values[0], game.board[i] == game.values[0]))
             if game.board[i] == self.values[0]:
@@ -51,13 +77,14 @@ class MoveService:
         print(moves, self.current_player)
         return bestMove
 
+    
     @classmethod
-    def whoseTurn(self, board: List[int]):
-        if len(board) != 9 or self.was_won(board):
+    def whose_turn(self, board: List[int], values: List[int]):
+        if len(board) != 9 or self.was_won(board, values):
             return -1
       
-        n1 = board.count(self.values[1])
-        n2 = board.count(self.values[2])
+        n1 = board.count(values[1])
+        n2 = board.count(values[2])
         
         if n1 == n2 or n1 + 1 == n2:
             return 1
@@ -73,23 +100,26 @@ class MoveService:
                 return False
         return True
 
+
+
     @classmethod
-    def was_won(self, board: List[int]):
+    def was_won(self, board: List[int], values: List[int]):
     
         for scenario in self.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
-                if board[scenario[0]] != self.values[0]:
+                if board[scenario[0]] != values[0]:
                     return True
         
         return False
 
     @classmethod
-    def is_board_complete(self, board: List[int]) -> bool:
+    def is_board_complete(self, board: List[int], values: List[int]) -> bool:
         for position in board:
-            if position == self.values[0]:
+            if position == values[0]:
                 return False
         return True
 
+ 
     @classmethod
     def evaluate(self, board: List[int], depth):
         for scenario in self.scenarios:
@@ -107,12 +137,12 @@ class MoveService:
         # 2 1 2
         # 2 1 2
         
-        if(self.was_won(board)):
-            #print(board, self.was_won(board), int(score), depth)
+        if(self.was_won(board, self.values)):
+            #print(board, self.was_won(board, self.values), int(score), depth)
             return score
     
-        elif self.is_board_complete(board):
-            #print(board, self.was_won(board), 0, depth)
+        elif self.is_board_complete(board, self.values):
+            #print(board, self.was_won(board, self.values), 0, depth)
             return 0
         elif isMaximizingPlayer: 
             bestVal = -100000    
