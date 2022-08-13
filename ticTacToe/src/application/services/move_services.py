@@ -25,14 +25,14 @@ class MoveService:
             if game.board[scenario[0]] == game.board[scenario[1]] and game.board[scenario[1]] == game.board[scenario[2]]:
                 if game.board[scenario[0]] != game.values[0]:
                     if game.board[scenario[0]] == game.values[1]:
-                        return 1
+                        return 1 #first player won
                     else:
-                        return 2
+                        return 2 # second player won
         
         if self.is_board_complete(game.board, game.values):
-            return 0
+            return 0 # draw
         else: 
-            return -1
+            return -1 # invalid board
 
 
     @classmethod
