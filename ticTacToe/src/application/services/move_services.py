@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, TypeVar
 from random import randint
 from src.application.domain.models import GameModel
+
+T = TypeVar("T")
 
 class MoveService:
     # win scenarios
@@ -19,7 +21,7 @@ class MoveService:
         n2 = game.board.count(game.values[2])
 
         if not (n1 == n2 or n1 + 1 == n2 or n2 + 1 == n1):
-            return -1
+            return -1 # invalid board
         
         for scenario in self.scenarios:
             if game.board[scenario[0]] == game.board[scenario[1]] and game.board[scenario[1]] == game.board[scenario[2]]:
@@ -32,7 +34,7 @@ class MoveService:
         if self.is_board_complete(game.board, game.values):
             return 0 # draw
         else: 
-            return -1 # invalid board
+            return 3 # incomplete board
 
 
     @classmethod
@@ -79,7 +81,7 @@ class MoveService:
 
     
     @classmethod
-    def whose_turn(self, board: List[int], values: List[int]):
+    def whose_turn(self, board: List[T], values: List[T]):
         if len(board) != 9 or self.was_won(board, values):
             return -1
       
@@ -94,7 +96,7 @@ class MoveService:
             return -1
 
     @classmethod
-    def is_board_empty(self, board: List[int]):
+    def is_board_empty(self, board: List[T]):
         for position in board:
             if position != self.values[0]:
                 return False
@@ -103,7 +105,7 @@ class MoveService:
 
 
     @classmethod
-    def was_won(self, board: List[int], values: List[int]):
+    def was_won(self, board: List[T], values: List[T]):
     
         for scenario in self.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
@@ -113,7 +115,7 @@ class MoveService:
         return False
 
     @classmethod
-    def is_board_complete(self, board: List[int], values: List[int]) -> bool:
+    def is_board_complete(self, board: List[T], values: List[T]) -> bool:
         for position in board:
             if position == values[0]:
                 return False
@@ -121,7 +123,7 @@ class MoveService:
 
  
     @classmethod
-    def evaluate(self, board: List[int], depth):
+    def evaluate(self, board: List[T], depth):
         for scenario in self.scenarios:
             if board[scenario[0]] == board[scenario[1]] and board[scenario[1]] == board[scenario[2]]:
                 if board[scenario[0]] == self.values[self.current_player]:
@@ -131,7 +133,7 @@ class MoveService:
         return 0
     
     @classmethod
-    def minimax(self, board: List[int], depth: int, isMaximizingPlayer: bool):
+    def minimax(self, board: List[T], depth: int, isMaximizingPlayer: bool):
         score = self.evaluate(board, depth)
         # 2 0 1
         # 2 1 2
