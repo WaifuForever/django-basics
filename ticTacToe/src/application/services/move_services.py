@@ -11,6 +11,22 @@ class MoveService:
     current_player = -1
 
     @classmethod
+    def find_winner(self, game: GameModel):
+        winner = 0
+        for scenario in self.scenarios:
+            if game.board[scenario[0]] == game.board[scenario[1]] and game.board[scenario[1]] == game.board[scenario[2]]:
+                if game.board[scenario[0]] != game.values[0]:
+                    if game.board[scenario[0]] == game.values[1]:
+                        winner += 1 # first player won
+                    else:
+                        winner += 2 # second player won
+        if(winner > 2):
+            return -1
+            
+        return winner
+        
+
+    @classmethod
     async def is_terminal_state(self, request) -> int:
         game = GameModel(**request.json)
         
@@ -23,18 +39,16 @@ class MoveService:
         if not (n1 == n2 or n1 + 1 == n2 or n2 + 1 == n1):
             return -1 # invalid board
         
-        for scenario in self.scenarios:
-            if game.board[scenario[0]] == game.board[scenario[1]] and game.board[scenario[1]] == game.board[scenario[2]]:
-                if game.board[scenario[0]] != game.values[0]:
-                    if game.board[scenario[0]] == game.values[1]:
-                        return 1 #first player won
-                    else:
-                        return 2 # second player won
-        
-        if self.is_board_complete(game.board, game.values):
-            return 0 # draw
-        else: 
-            return 3 # incomplete board
+        winner = self.find_winner(game)
+        print(winner)
+        if(winner == 0):
+            if self.is_board_complete(game.board, game.values):
+                return 0 # draw
+            else: 
+                return 3 # incomplete board
+        else:
+            return winner
+       
 
 
     @classmethod
